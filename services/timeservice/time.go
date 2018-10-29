@@ -12,24 +12,17 @@ type DbService interface {
 }
 
 type TimeService struct {
-	time time.Time
-	db   DbService
+	db DbService
 }
 
 func NewTimeService(db DbService) *TimeService {
 	return &TimeService{
-		time: time.Now().UTC(),
-		db:   db,
+		db: db,
 	}
 }
 
 func (ts *TimeService) GetFloat64() (float64, error) {
-	f, err := strconv.ParseFloat(ts.getTime(), 64)
-
-	if err != nil {
-		return 0, err
-	}
-	return f, nil
+	return strconv.ParseFloat(ts.getTime(), 64)
 }
 
 func (ts *TimeService) GetString() string {
@@ -37,5 +30,5 @@ func (ts *TimeService) GetString() string {
 }
 
 func (ts *TimeService) getTime() string {
-	return ts.time.Format(defaultFormat)
+	return time.Now().UTC().Format(defaultFormat)
 }

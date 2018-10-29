@@ -8,8 +8,13 @@ import (
 )
 
 func (e *Engine) handlerNow(ctx *gin.Context) {
-	time, _ := e.Service.TimeService.GetFloat64()
+	time, err := e.Service.TimeService.GetFloat64()
+	if err != nil {
+		e.NewError(err).SetHttpCode(http.StatusBadRequest).Send(ctx)
+		return
+	}
+
 	ctx.JSON(http.StatusOK, response.Now{
-		Time: time,
+		Time: response.FloatNumber(time),
 	})
 }

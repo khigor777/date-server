@@ -27,7 +27,7 @@ func (e *Error) SetHttpCode(code int) *Error {
 	return e
 }
 
-func (e *Error) Send(c *gin.Context, redirect string) {
+func (e *Error) Send(c *gin.Context) {
 	e.service.Logger.Info(e.service.Logger.WithFields(logrus.Fields{
 		"error":       e.Message,
 		"status_code": e.StatusCode,
