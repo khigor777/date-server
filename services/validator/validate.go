@@ -1,46 +1,39 @@
 package validator
 
 import (
-	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
+	"time"
+
+	"github.com/pkg/errors"
 )
+
+var ValidateError = errors.New("dosen't fit the mask 00.000000")
+var reDelta = regexp.MustCompile(`^[0-9]{2}([.][0-9]{2,6})?$`) //why global? speed optimization!
+
+type timeValidator interface {
+	ValidateTime() error
+	ValidateDelta() error
+}
 
 type Validator float64
 
-func (v *Validator) Time() error {
-	time := v.getString()
-}
-
-func (v *Validator) getMapTime() map[string]string {
-	t := v.getString()
-	return map[string]string{
-		"year": t[0:2],
-	}
-}
-
-func (v *Validator) Delta() error {
-	str := strings.Split(v.getString(), ".")
-	if len(str) != 1 {
-		return fmt.Errorf("wrong float format must have one point now %d", len(str))
-	}
-
-	if err := v.checkDelta(str[0], "day"); err != nil {
-		return err
-	}
-	return v.checkDelta(str[1], "hour")
-
-}
-
-func (Validator) checkDelta(str, timeType string) error {
-	res, err := strconv.Atoi(str)
+func (v *Validator) ValidateTime(format string) error {
+	_, err := time.Parse(format, v.getString())
 	if err != nil {
 		return err
 	}
-	if res > 0 && res <= 99 {
+	return nil
+}
+
+func (v *Validator) ValidateDelta() error {
+	str := v.getString()
+	str = strings.TrimRight(strings.TrimRight(str, "0"), ".")
+	if reDelta.Match([]byte(str)) {
 		return nil
 	}
-	return fmt.Errorf("wrong delta [%s] must be from 1 to 99 now: %d", timeType, res)
+	return ValidateError
 }
 
 func (v *Validator) getString() string {
