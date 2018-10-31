@@ -1,6 +1,7 @@
 package timeservice
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -23,7 +24,7 @@ func NewTimeService(db DbService) *TimeService {
 	}
 }
 
-func (ts *TimeService) GetFloat64() (float64, error) {
+func (ts *TimeService) GetFloat() (float64, error) {
 	return strconv.ParseFloat(ts.getTime(), 64)
 }
 
@@ -34,6 +35,28 @@ func (ts *TimeService) GetString(timeF float64) (string, error) {
 		return "", err
 	}
 	return str.String(), nil
+}
+
+func (ts *TimeService) Set(timeF float64) error {
+	t, err := services.ParseTime(timeF)
+	if err != nil {
+		return err
+	}
+	d := time.Now().Sub(*t)
+	sec := d.Seconds()
+	min := d.Minutes()
+	days := int(d.Hours() / 24)
+	hours := float64(days*24) - d.Hours()
+	str := fmt.Sprintf("%02d.%f%f%f", days, hours, min, sec)
+	f, err := strconv.ParseFloat(str, 64)
+	if err != nil {
+		return err
+	}
+	return ts.db.Set(f)
+}
+
+func (ts *TimeService) Reset() error {
+	return ts.db.Remove()
 }
 
 func (ts *TimeService) Add(timeF float64, delta float64) (float64, error) {
